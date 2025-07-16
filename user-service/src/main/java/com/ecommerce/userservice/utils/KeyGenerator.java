@@ -1,4 +1,4 @@
-package com.ecommerce.userservice;
+package com.ecommerce.userservice.utils;
 
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
