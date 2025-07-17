@@ -106,7 +106,7 @@ graph TD
 
 1.  **Clone the Repository:**
     ```bash
-    git clone [https://github.com/YOUR_USERNAME/ecommerce-platform-microservices.git](https://github.com/YOUR_USERNAME/ecommerce-platform-microservices.git)
+    git clone https://github.com/ravi2411rj/ecommerce-platform-microservices.git
     cd ecommerce-platform-microservices
     ```
 
@@ -143,12 +143,16 @@ graph TD
 
 ---
 
+### 2. Product Catalog Service
+* **Port:** 8081 (configurable in `application.properties`)
+* **Database:** `product_db`
+* **Description:** Manages product information, including details, inventory, and categories. Implements **CRUD operations** and leverages **Redis caching** for improved performance on frequently accessed product data.
+* **API Documentation (Swagger UI):** `http://localhost:8081/swagger-ui.html`
+
+---
+
 ## Future Enhancements & To-Do List 
 
-* **Implement Product Service:**
-    * Define Product entity and repository.
-    * Implement CRUD operations for products.
-    * Integrate Redis caching for frequently accessed product data.
 * **Implement Order Service:**
     * Define Order entity and repository.
     * Implement order creation, retrieval, and status updates.
