@@ -23,31 +23,31 @@ The following diagram illustrates the high-level architecture of the e-commerce 
 
 ```mermaid
 graph TD
-    subgraph Client Applications
+    subgraph Client Apps
         WebClient[Web Browser/SPA]
         MobileApp[Mobile App]
     end
 
-    subgraph E-commerce Microservices Platform
+    subgraph E-commerce Microservices
         direction LR
         API_Gateway(API Gateway) --> User[User Service]
         API_Gateway --> Product[Product Service]
         API_Gateway --> Order[Order Service]
         API_Gateway --> Payment[Payment Service]
 
-        User -- JWT/Authentication --> API_Gateway
+        User -- JWT Auth --> API_Gateway
         User --> DB_User[(User DB)]
 
-        Product -- Cached Data --> Redis((Redis Cache))
+        Product -- Caching --> Redis((Redis Cache))
         Product --> DB_Product[(Product DB)]
 
-        Order -- REST Call: Validate Product/User --> Product
-        Order -- REST Call: Validate User --> User
-        Order -- Event: Order Placed (Kafka/MQ) --> Payment
+        Order -- REST: Validate Prod/User --> Product
+        Order -- REST: Validate User --> User
+        Order -- Event: Order Placed (Kafka) --> Payment
         Order --> DB_Order[(Order DB)]
 
-        Payment -- REST Call: Get Order Details --> Order
-        Payment -- External Call --> ThirdParty[External Payment Gateway]
+        Payment -- REST: Get Order --> Order
+        Payment -- External Call --> ThirdParty[Payment Gateway]
         Payment --> DB_Payment[(Payment DB)]
     end
 
