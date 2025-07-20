@@ -12,6 +12,7 @@
 
     <artifactId>product-service</artifactId>
     <name>product-service</name>
+    <packaging>jar</packaging>
     <description>Product Catalogue Service for E-commerce Platform</description>
 
     <dependencies>
@@ -68,6 +69,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.ecommerce.productservice.ProductServiceApplication</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
