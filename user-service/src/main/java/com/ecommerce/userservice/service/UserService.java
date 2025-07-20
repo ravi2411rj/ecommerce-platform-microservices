@@ -1,14 +1,19 @@
 package com.ecommerce.userservice.service;
 
 import com.ecommerce.userservice.dto.UserDetailsDto;
-import com.ecommerce.userservice.dto.UserResponse;
+import com.ecommerce.userservice.dto.UserResponseDto;
+import com.ecommerce.userservice.entity.Role;
 import com.ecommerce.userservice.entity.User;
 import com.ecommerce.userservice.exception.ResourceNotFoundException;
+import com.ecommerce.userservice.repository.RoleRepository;
 import com.ecommerce.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,9 +22,10 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
     @Transactional(readOnly = true)
-    public UserResponse getUserResponseById(Long id) {
+    public UserResponseDto getUserResponseById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         return convertToUserResponse(user);
@@ -38,11 +44,38 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
     }
 
-    private UserResponse convertToUserResponse(User user) {
+    @Transactional
+    public UserResponseDto updateUserRole(Long id, Role.RoleName newRoleName) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+
+        Role role = roleRepository.findByName(newRoleName)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", newRoleName.name()));
+
+        user.setRoles(new HashSet<>(Collections.singletonList(role)));
+        User updatedUser = userRepository.save(user);
+        return convertToUserResponse(updatedUser);
+    }
+
+    @Transactional
+    public void deleteUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        userRepository.delete(user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserResponseDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::convertToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    private UserResponseDto convertToUserResponse(User user) {
         Set<String> roles = user.getRoles().stream()
                 .map(role -> role.getName().name())
                 .collect(Collectors.toSet());
-        return UserResponse.builder()
+        return UserResponseDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())

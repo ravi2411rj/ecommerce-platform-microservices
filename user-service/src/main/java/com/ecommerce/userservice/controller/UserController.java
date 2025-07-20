@@ -1,7 +1,7 @@
 package com.ecommerce.userservice.controller;
 
 import com.ecommerce.userservice.dto.UserDetailsDto;
-import com.ecommerce.userservice.dto.UserResponse;
+import com.ecommerce.userservice.dto.UserResponseDto;
 import com.ecommerce.userservice.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,7 +30,7 @@ public class UserController {
     @Operation(summary = "Get user details by ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User found",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.class))),
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content),
             @ApiResponse(responseCode = "403", description = "Access denied",
@@ -38,9 +38,9 @@ public class UserController {
     })
     @PreAuthorize("hasRole('ADMIN') or @userSecurity.isSelf(#id)")
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
-        UserResponse userResponse = userService.getUserResponseById(id);
-        return ResponseEntity.ok(userResponse);
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
+        UserResponseDto userResponseDto = userService.getUserResponseById(id);
+        return ResponseEntity.ok(userResponseDto);
     }
 
     @Operation(summary = "Get user details by ID for inter-service communication (internal use only)")

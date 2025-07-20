@@ -1,8 +1,8 @@
 package com.ecommerce.userservice.controller;
 
-import com.ecommerce.userservice.dto.AuthResponse;
-import com.ecommerce.userservice.dto.LoginRequest;
-import com.ecommerce.userservice.dto.RegisterRequest;
+import com.ecommerce.userservice.dto.AuthResponseDto;
+import com.ecommerce.userservice.dto.LoginRequestDto;
+import com.ecommerce.userservice.dto.RegisterRequestDto;
 import com.ecommerce.userservice.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,26 +30,26 @@ public class AuthController {
     @Operation(summary = "Register a new user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "User registered successfully",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input or username/email already exists",
                     content = @Content)
     })
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> registerUser(@Valid @RequestBody RegisterRequest request) {
-        AuthResponse response = authService.registerUser(request);
+    public ResponseEntity<AuthResponseDto> registerUser(@Valid @RequestBody RegisterRequestDto request) {
+        AuthResponseDto response = authService.registerUser(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @Operation(summary = "Authenticate user and get JWT token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User authenticated successfully",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponseDto.class))),
             @ApiResponse(responseCode = "401", description = "Invalid credentials",
                     content = @Content)
     })
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> loginUser(@Valid @RequestBody LoginRequest request) {
-        AuthResponse response = authService.loginUser(request);
+    public ResponseEntity<AuthResponseDto> loginUser(@Valid @RequestBody LoginRequestDto request) {
+        AuthResponseDto response = authService.loginUser(request);
         return ResponseEntity.ok(response);
     }
 }

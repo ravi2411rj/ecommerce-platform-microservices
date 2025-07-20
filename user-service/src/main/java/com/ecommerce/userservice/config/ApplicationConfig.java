@@ -21,36 +21,29 @@ public class ApplicationConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        // This bean is still needed for the AuthenticationProvider
         return username -> userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // This bean is still needed for the AuthenticationProvider
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        // **RESOLVED DEPRECATION WARNINGS HERE:**
-        // We now pass UserDetailsService and PasswordEncoder directly to the constructor
-        // or use the builder pattern to avoid deprecated setters/constructors.
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(passwordEncoder());
-        provider.setUserDetailsService(userDetailsService()); // Still requires this setter for now, even if constructor takes passwordEncoder
+        provider.setUserDetailsService(userDetailsService());
         return provider;
     }
 
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        // This remains unchanged as it's the standard way to get AuthenticationManager
         return config.getAuthenticationManager();
     }
 
-    @Bean("userSecurity") // Name the bean so it can be referenced by SpEL
+    @Bean("userSecurity")
     public SecurityConfiguration.UserSecurity userSecurity() {
-        return new SecurityConfiguration.UserSecurity(userRepository); // Pass userRepository for checking user ID matches
+        return new SecurityConfiguration.UserSecurity(userRepository);
     }
 }
