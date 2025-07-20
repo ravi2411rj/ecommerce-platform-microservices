@@ -1,7 +1,7 @@
 package com.ecommerce.productservice.service;
 
-import com.ecommerce.productservice.dto.ProductRequest;
-import com.ecommerce.productservice.dto.ProductResponse;
+import com.ecommerce.productservice.dto.ProductRequestDto;
+import com.ecommerce.productservice.dto.ProductResponseDto;
 import com.ecommerce.productservice.exception.ProductAlreadyExistsException;
 import com.ecommerce.productservice.exception.ProductNotFoundException;
 import com.ecommerce.productservice.model.Product;
@@ -26,20 +26,20 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public ProductResponse createProduct(ProductRequest productRequest) {
-        log.info("Attempting to create product: {}", productRequest.getName());
-        if (productRepository.existsByName(productRequest.getName())) {
-            log.warn("Product with name '{}' already exists.", productRequest.getName());
-            throw new ProductAlreadyExistsException("Product with name '" + productRequest.getName() + "' already exists.");
+    public ProductResponseDto createProduct(ProductRequestDto productRequestDto) {
+        log.info("Attempting to create product: {}", productRequestDto.getName());
+        if (productRepository.existsByName(productRequestDto.getName())) {
+            log.warn("Product with name '{}' already exists.", productRequestDto.getName());
+            throw new ProductAlreadyExistsException("Product with name '" + productRequestDto.getName() + "' already exists.");
         }
 
         Product product = Product.builder()
-                .name(productRequest.getName())
-                .description(productRequest.getDescription())
-                .price(productRequest.getPrice())
-                .stockQuantity(productRequest.getStockQuantity())
-                .category(productRequest.getCategory())
-                .imageUrl(productRequest.getImageUrl())
+                .name(productRequestDto.getName())
+                .description(productRequestDto.getDescription())
+                .price(productRequestDto.getPrice())
+                .stockQuantity(productRequestDto.getStockQuantity())
+                .category(productRequestDto.getCategory())
+                .imageUrl(productRequestDto.getImageUrl())
                 .build();
 
         Product savedProduct = productRepository.save(product);
@@ -47,9 +47,9 @@ public class ProductService {
         return mapToProductResponse(savedProduct);
     }
 
-    @Cacheable(value = "products", key = "#id") // Cache individual product by ID
+    @Cacheable(value = "products", key = "#id")
     @Transactional(readOnly = true)
-    public ProductResponse getProductById(Long id) {
+    public ProductResponseDto getProductById(Long id) {
         log.info("Fetching product by ID: {}", id);
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + id));
@@ -57,9 +57,9 @@ public class ProductService {
         return mapToProductResponse(product);
     }
 
-    @Cacheable(value = "allProducts") // Cache all products
+    @Cacheable(value = "allProducts")
     @Transactional(readOnly = true)
-    public List<ProductResponse> getAllProducts() {
+    public List<ProductResponseDto> getAllProducts() {
         log.info("Fetching all products.");
         List<Product> products = productRepository.findAll();
         log.info("Fetched {} products.", products.size());
@@ -68,25 +68,24 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
-    @CachePut(value = "products", key = "#id") // Update cache entry after update
+    @CachePut(value = "products", key = "#id")
     @Transactional
-    public ProductResponse updateProduct(Long id, ProductRequest productRequest) {
+    public ProductResponseDto updateProduct(Long id, ProductRequestDto productRequestDto) {
         log.info("Attempting to update product with ID: {}", id);
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + id));
 
-        // Check for name uniqueness if name is changed
-        if (!existingProduct.getName().equals(productRequest.getName()) && productRepository.existsByName(productRequest.getName())) {
-            log.warn("Cannot update product ID {} because name '{}' already exists for another product.", id, productRequest.getName());
-            throw new ProductAlreadyExistsException("Product with name '" + productRequest.getName() + "' already exists.");
+        if (!existingProduct.getName().equals(productRequestDto.getName()) && productRepository.existsByName(productRequestDto.getName())) {
+            log.warn("Cannot update product ID {} because name '{}' already exists for another product.", id, productRequestDto.getName());
+            throw new ProductAlreadyExistsException("Product with name '" + productRequestDto.getName() + "' already exists.");
         }
 
-        existingProduct.setName(productRequest.getName());
-        existingProduct.setDescription(productRequest.getDescription());
-        existingProduct.setPrice(productRequest.getPrice());
-        existingProduct.setStockQuantity(productRequest.getStockQuantity());
-        existingProduct.setCategory(productRequest.getCategory());
-        existingProduct.setImageUrl(productRequest.getImageUrl());
+        existingProduct.setName(productRequestDto.getName());
+        existingProduct.setDescription(productRequestDto.getDescription());
+        existingProduct.setPrice(productRequestDto.getPrice());
+        existingProduct.setStockQuantity(productRequestDto.getStockQuantity());
+        existingProduct.setCategory(productRequestDto.getCategory());
+        existingProduct.setImageUrl(productRequestDto.getImageUrl());
 
         Product updatedProduct = productRepository.save(existingProduct);
         log.info("Product with ID '{}' updated successfully.", id);
@@ -107,9 +106,9 @@ public class ProductService {
         log.info("Product with ID '{}' deleted successfully.", id);
     }
 
-    // Helper method to map Product entity to ProductResponse DTO
-    private ProductResponse mapToProductResponse(Product product) {
-        return ProductResponse.builder()
+    // Helper method to map Product entity to ProductResponseDto DTO
+    private ProductResponseDto mapToProductResponse(Product product) {
+        return ProductResponseDto.builder()
                 .id(product.getId())
                 .name(product.getName())
                 .description(product.getDescription())

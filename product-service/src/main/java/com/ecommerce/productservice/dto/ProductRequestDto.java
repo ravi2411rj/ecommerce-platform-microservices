@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductRequest {
+public class ProductRequestDto {
     @NotBlank(message = "Product name cannot be empty")
     @Size(min = 2, max = 255, message = "Product name must be between 2 and 255 characters")
     private String name;
