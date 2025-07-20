@@ -70,7 +70,7 @@ graph TD
     style WebClient fill:#F0F8FF,stroke:#333,stroke-width:2px,color:#333;
     style MobileApp fill:#F0F8FF,stroke:#333,stroke-width:2px,color:#333;
 ```
-## Features Implemented (as of User Service completion) 
+## Features Implemented 
 
 * **User Service (Authentication & Authorization):**
     * User registration and login with password hashing (BCrypt).
@@ -94,92 +94,154 @@ graph TD
 
 ## Getting Started 
 
+---
+
 ### Prerequisites
 
-* Java Development Kit (JDK) 17 or higher
-* Apache Maven 3.8.x or higher
-* Docker Desktop (for local orchestration and setting up MySQL/Redis containers)
-* MySQL Server (version 8.0+)
-* Postman (for API testing)
-
-### Local Setup
-
-1.  **Clone the Repository:**
-    ```bash
-    git clone https://github.com/ravi2411rj/ecommerce-platform-microservices.git
-    cd ecommerce-platform-microservices
-    ```
-
-2.  **Database Setup:**
-    * Ensure your MySQL server is running on `localhost:3306`.
-    * Create a database named `user_db` (or whatever is configured in `user-service/src/main/resources/application.properties`).
-        ```sql
-        CREATE DATABASE user_db;
-        ```
-    * Update the `src/main/resources/application.properties` file in `user-service` with your MySQL connection details (username, password, and database name).
-
-3.  **Build All Microservices:**
-    Navigate to the root of the project (`ecommerce-platform-microservices`) and run:
-    ```bash
-    mvn clean install -U
-    ```
-
-4.  **Run Individual Microservices (for development):**
-    You can run the User Service from your IDE or by navigating into the `user-service` directory and running:
-    ```bash
-    java -jar target/user-service-0.0.1-SNAPSHOT.jar
-    ```
-    Once the User Service is running, you can access its Swagger UI at `http://localhost:8080/swagger-ui.html` (or the port you configured).
+- Java Development Kit (JDK) 17 or higher
+- Apache Maven 3.8.x or higher
+- Docker Desktop (for running MySQL, Redis, and services)
+- Postman (for API testing)
+- IntelliJ IDEA (recommended for managing multiple run configurations)
 
 ---
 
-## Microservices Breakdown 
+### Environment Setup Options
 
-### 1. User Management Service
-* **Port:** 8080 (default, configurable in `application.properties`)
-* **Database:** `user_db`
-* **Description:** Handles user registration, login, profile management, and role-based access control. Issues and validates JWTs for secure communication.
-* **API Documentation (Swagger UI):** `http://localhost:8080/swagger-ui.html`
+#### Option 1: Run Entire Platform via Docker (Recommended)
+
+This is the default and preferred method for running the entire microservices platform.
+
+##### 1. Clone the Repository
+```bash
+git clone https://github.com/ravi2411rj/ecommerce-platform-microservices.git
+cd ecommerce-platform-microservices
+```
+
+##### 2. Setup Environment Variables
+Create a `.env` file in the root directory with the following variables:
+
+```env
+DB_USER=root
+DB_USER_PASSWORD=your_password
+JWT_SECRET_KEY=your_jwt_secret_key
+```
+
+> These variables are used in `docker-compose.yml` for DB and service startup.
+
+##### 3. Build & Package All Microservices
+```bash
+mvn clean package -DskipTests
+```
+
+##### 4. Run All Services with Docker Compose
+```bash
+docker compose up --build
+```
+
+##### 5. Access Swagger UIs
+- User Service → [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+- Product Service → [http://localhost:8081/swagger-ui.html](http://localhost:8081/swagger-ui.html)
+- Order Service → [http://localhost:8082/swagger-ui.html](http://localhost:8082/swagger-ui.html)
+- Payment Service → [http://localhost:8083/swagger-ui.html](http://localhost:8083/swagger-ui.html)
 
 ---
 
-### 2. Product Catalog Service
-* **Port:** 8081 (configurable in `application.properties`)
-* **Database:** `product_db`
-* **Description:** Manages product information, including details, inventory, and categories. Implements **CRUD operations** and leverages **Redis caching** for improved performance on frequently accessed product data.
-* **API Documentation (Swagger UI):** `http://localhost:8081/swagger-ui.html`
+#### Option 2: Run Services Locally via IntelliJ (For Development)
+
+You can run individual services in IntelliJ using **Spring Profiles**.
+
+##### 1. Profile Setup
+- Each service includes:
+  - `application.properties` → shared config
+  - `application-local.properties` → for local runs
+  - `application-docker.properties` → for Docker
+
+##### 2. IntelliJ Run Config
+In IntelliJ:
+- Set **VM Options** for each service run config:
+  ```
+  -Dspring.profiles.active=local
+  ```
+- Set **Environment Variables**:
+  ```
+  DB_USER=root
+  DB_USER_PASSWORD=your_password
+  JWT_SECRET_KEY=your_jwt_secret_key
+  ```
+
+##### 3. Database Setup
+Ensure MySQL is running on `localhost:3306`. Then create the required databases:
+
+```sql
+CREATE DATABASE user_db;
+CREATE DATABASE product_db;
+CREATE DATABASE order_db;
+CREATE DATABASE payment_db;
+```
+
+##### 4. Redis Setup (optional for product-service)
+If testing Redis locally, run:
+```bash
+docker run --name redis_dev -p 6378:6379 -d redis:7.0-alpine
+```
+
+##### 5. Build and Run Individual Services
+```bash
+mvn clean install -U
+cd user-service
+java -jar target/user-service-0.0.1-SNAPSHOT.jar
+```
+
+You can repeat the above for `product-service`, `order-service`, and `payment-service`.
 
 ---
 
-## Future Enhancements & To-Do List 
+### Microservice Modules
 
-* **Implement Order Service:**
-    * Define Order entity and repository.
-    * Implement order creation, retrieval, and status updates.
-    * Integrate synchronous REST calls to User and Product services for validation.
-    * Implement asynchronous event publishing (Kafka/RabbitMQ) for "Order Placed" events.
-* **Implement Payment Service:**
-    * Define Payment entity and repository.
-    * Consume "Order Placed" events from the Order Service.
-    * Integrate with an external payment gateway (simulated or real).
-    * Handle payment processing and status updates.
+| Service         | Port | Description                  |
+|-----------------|------|------------------------------|
+| user-service    | 8080 | Handles user registration/login, JWT authentication |
+| product-service | 8081 | Manages products and uses Redis caching |
+| order-service   | 8082 | Handles orders and integrates user & product services |
+| payment-service | 8083 | Manages payment and order confirmation |
+
+---
+
+### Notes
+
+- Services use **Spring Profiles** to load correct configs (`local`, `docker`).
+- `docker-compose.yml` handles orchestration, DB creation, and environment setup.
+- Redis is used by the Product Service for caching.
+
+---
+
+### Cleaning Up
+
+To stop and remove containers:
+```bash
+docker compose down --volumes --remove-orphans
+```
+
+---
+
+## Future Enhancements & To-Do List
+
 * **Implement API Gateway (Spring Cloud Gateway/Zuul):**
     * Centralized routing of requests to respective microservices.
     * Global JWT validation and authentication enforcement.
     * Rate limiting and circuit breaking.
 * **Asynchronous Communication:**
-    * Set up Kafka/RabbitMQ for inter-service communication (e.g., Order Placed events).
+    * Set up Kafka/RabbitMQ for inter-service communication (e.g., beyond just "Order Placed" events).
 * **Monitoring & Logging:**
     * Integrate Prometheus/Grafana for monitoring.
     * Implement centralized logging with ELK Stack (Elasticsearch, Logstash, Kibana).
 * **Containerization & Deployment:**
-    * Finalize Dockerfiles for each service.
-    * Complete `docker-compose.yml` for local multi-service orchestration.
     * Explore Kubernetes deployment.
 * **Testing:**
     * Add comprehensive unit, integration, and end-to-end tests.
 * **Error Handling & Resilience:**
-    * Implement more robust global error handling.
+    * Implement more robust error handling.
     * Introduce resilience patterns (e.g., Retry, Circuit Breaker with Resilience4j).
 * **Security Enhancements:**
     * Fine-grained role-based access control (RBAC) across all services.
@@ -188,7 +250,7 @@ graph TD
 
 ---
 
-## Contributing 
+## Contributions
 
 Contributions are welcome! Please feel free to open issues or submit pull requests.
 
