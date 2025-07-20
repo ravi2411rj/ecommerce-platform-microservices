@@ -1,0 +1,143 @@
+services:
+  mysql_db:
+    image: mysql:8.0
+    container_name: mysql_db_container
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_USER_PASSWORD}
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_USER_PASSWORD}" ]
+      interval: 10s
+      timeout: 20s
+      retries: 10
+      start_period: 240s
+
+  redis_cache:
+    image: redis:7.0-alpine
+    container_name: redis_cache_container
+    ports:
+      - "6378:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ecommerce-network
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: user_service_container
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_USER: ${DB_USER}
+      DB_USER_PASSWORD: ${DB_USER_PASSWORD}
+      APPLICATION_SECURITY_JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      SPRING_DATASOURCE_HIKARI_CONNECTION-TIMEOUT: 30000
+      SPRING_DATASOURCE_HIKARI_MAXIMUM-POOL-SIZE: 10
+      SPRING_DATASOURCE_HIKARI_VALIDATION-TIMEOUT: 5000
+      SPRING_DATASOURCE_HIKARI_LEAK-DETECTION-THRESHOLD: 2000
+      SPRING_DATASOURCE_HIKARI_INITIALIZATION-FAIL-TIMEOUT: 240000
+      SPRING_DATASOURCE_HIKARI_HEALTH-CHECK-VALIDATION-INTERVAL: 30000
+    depends_on:
+      mysql_db:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
+
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    container_name: product_service_container
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_USER: ${DB_USER}
+      DB_USER_PASSWORD: ${DB_USER_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis_cache
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATASOURCE_HIKARI_CONNECTION-TIMEOUT: 30000
+      SPRING_DATASOURCE_HIKARI_MAXIMUM-POOL-SIZE: 10
+      SPRING_DATASOURCE_HIKARI_VALIDATION-TIMEOUT: 5000
+      SPRING_DATASOURCE_HIKARI_LEAK-DETECTION-THRESHOLD: 2000
+      SPRING_DATASOURCE_HIKARI_INITIALIZATION-FAIL-TIMEOUT: 240000
+      SPRING_DATASOURCE_HIKARI_HEALTH-CHECK-VALIDATION-INTERVAL: 30000
+    depends_on:
+      mysql_db:
+        condition: service_healthy
+      redis_cache:
+        condition: service_started
+    networks:
+      - ecommerce-network
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order_service_container
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_USER: ${DB_USER}
+      DB_USER_PASSWORD: ${DB_USER_PASSWORD}
+      APPLICATION_SERVICES_USER_SERVICE_URL: http://user-service:8080
+      APPLICATION_SERVICES_PRODUCT_SERVICE_URL: http://product-service:8081
+      SPRING_DATASOURCE_HIKARI_CONNECTION-TIMEOUT: 30000
+      SPRING_DATASOURCE_HIKARI_MAXIMUM-POOL-SIZE: 10
+      SPRING_DATASOURCE_HIKARI_VALIDATION-TIMEOUT: 5000
+      SPRING_DATASOURCE_HIKARI_LEAK-DETECTION-THRESHOLD: 2000
+      SPRING_DATASOURCE_HIKARI_INITIALIZATION-FAIL-TIMEOUT: 240000
+      SPRING_DATASOURCE_HIKARI_HEALTH-CHECK-VALIDATION-INTERVAL: 30000
+    depends_on:
+      mysql_db:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+    networks:
+      - ecommerce-network
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: payment_service_container
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_USER: ${DB_USER}
+      DB_USER_PASSWORD: ${DB_USER_PASSWORD}
+      APPLICATION_SERVICES_ORDER_SERVICE_URL: http://order-service:8082
+      SPRING_DATASOURCE_HIKARI_CONNECTION-TIMEOUT: 30000
+      SPRING_DATASOURCE_HIKARI_MAXIMUM-POOL-SIZE: 10
+      SPRING_DATASOURCE_HIKARI_VALIDATION-TIMEOUT: 5000
+      SPRING_DATASOURCE_HIKARI_LEAK-DETECTION-THRESHOLD: 2000
+      SPRING_DATASOURCE_HIKARI_INITIALIZATION-FAIL-TIMEOUT: 240000
+      SPRING_DATASOURCE_HIKARI_HEALTH-CHECK-VALIDATION-INTERVAL: 30000
+    depends_on:
+      mysql_db:
+        condition: service_healthy
+      order-service:
+        condition: service_started
+    networks:
+      - ecommerce-network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  ecommerce-network:
+    driver: bridge
