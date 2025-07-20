@@ -13,6 +13,7 @@ release-pom.xml
 *.iws
 *.ipr
 out/
+.vscode/
 
 # Eclipse
 .classpath
@@ -33,10 +34,16 @@ ehthumbs.db
 *.bak
 *.swp
 *.swo
+*.tmp
+.project
+.classpath
+.factorypath
 
 # Logs
 logs/
 *.log
+*.log.*
+nohup.out
 
 # Dependency locking files
 .mvn/wrapper/maven-wrapper.jar.original
@@ -47,3 +54,45 @@ logs/
 *.ear
 *.zip
 *.tar.gz
+!.dockerignore
+.env
+.env.*
+volumes/
+
+# Spring Boot Specific
+.apt_generated
+.springBeans
+.factorypath
+.lombok/
+.gradle
+/build/
+.kotlin/
+
+# IDE-specific directories and files that should not be committed
+.settings/
+.idea/
+.vscode/
+.DS_Store
+*.iml
+*.ipr
+*.iws
+/out/
+/build/
+/dist/
+/bin/
+/tmp/
+
+# Package Manager files
+node_modules/
+
+# Miscellaneous
+*.pid
+*.suo
+*.user
+*.ncb
+*.opendb
+*.sdf
+*.vssscc
+*.vspscc
+/.idea_modules/
+.project.main.xml
