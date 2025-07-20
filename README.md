@@ -15,7 +15,6 @@ The project demonstrates key backend engineering principles, including:
 
 This project aims to simulate real-world e-commerce workflows and provide a solid foundation for understanding scalable, distributed backend systems.
 
----
 
 ## Architecture Diagram 
 
@@ -93,8 +92,6 @@ graph TD
     * Spring Boot DevTools for enhanced developer experience.
 
 ## Getting Started 
-
----
 
 ### Prerequisites
 
@@ -223,8 +220,6 @@ To stop and remove containers:
 docker compose down --volumes --remove-orphans
 ```
 
----
-
 ## Future Enhancements & To-Do List
 
 * **Implement API Gateway (Spring Cloud Gateway/Zuul):**
@@ -248,12 +243,10 @@ docker compose down --volumes --remove-orphans
     * Input validation and sanitization.
     * OAuth 2.0 flows for delegated access.
 
----
-
 ## Contributions
 
 Contributions are welcome! Please feel free to open issues or submit pull requests.
 
-## License 📄
+## License
 
 This project is licensed under the MIT License.
