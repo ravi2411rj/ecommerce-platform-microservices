@@ -25,6 +25,10 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
+    @Caching(
+            put = { @CachePut(value = "products", key = "#result.id") },
+            evict = { @CacheEvict(value = "allProducts", allEntries = true) }
+    )
     @Transactional
     public ProductResponseDto createProduct(ProductRequestDto productRequestDto) {
         log.info("Attempting to create product: {}", productRequestDto.getName());
