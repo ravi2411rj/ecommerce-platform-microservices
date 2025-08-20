@@ -168,7 +168,7 @@ In IntelliJ:
   ```
 
 ##### 3. Database Setup
-Ensure MySQL is running on `localhost:3306`. Then create the required databases:
+Ensure MySQL is running. The Docker setup exposes MySQL on host port `3308`, so connect to `localhost:3308` when using the provided `docker-compose.yml`. If running MySQL locally, use the default `localhost:3306`. Then create the required databases:
 
 ```sql
 CREATE DATABASE user_db;
