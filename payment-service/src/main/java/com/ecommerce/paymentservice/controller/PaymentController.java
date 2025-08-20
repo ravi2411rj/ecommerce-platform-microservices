@@ -2,6 +2,8 @@ package com.ecommerce.paymentservice.controller;
 
 import com.ecommerce.paymentservice.dto.PaymentRequestDto;
 import com.ecommerce.paymentservice.dto.PaymentResponseDto;
+import com.ecommerce.paymentservice.exception.ErrorResponse;
+import com.ecommerce.paymentservice.exception.OrderNotFoundException;
 import com.ecommerce.paymentservice.model.PaymentStatus;
 import com.ecommerce.paymentservice.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,8 +16,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -97,5 +101,17 @@ public class PaymentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePayment(@PathVariable Long id) {
         paymentService.deletePayment(id);
+    }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleOrderNotFoundException(OrderNotFoundException ex, WebRequest request) {
+        return new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request.getDescription(false)
+        );
     }
 }
