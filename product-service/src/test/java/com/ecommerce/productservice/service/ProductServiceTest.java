@@ -2,6 +2,7 @@ package com.ecommerce.productservice.service;
 
 import com.ecommerce.productservice.dto.ProductRequestDto;
 import com.ecommerce.productservice.dto.ProductResponseDto;
+import com.ecommerce.productservice.exception.ProductAlreadyExistsException;
 import com.ecommerce.productservice.model.Product;
 import com.ecommerce.productservice.repository.ProductRepository;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -61,5 +63,24 @@ class ProductServiceTest {
         // After creation, cache should be evicted and repository called again
         assertThat(productService.getAllProducts()).hasSize(1);
         verify(productRepository, times(2)).findAll();
+    }
+
+    @Test
+    void createProductThrowsWhenNameAlreadyExists() {
+        ProductRequestDto request = ProductRequestDto.builder()
+                .name("Laptop")
+                .description("desc")
+                .price(BigDecimal.valueOf(1000))
+                .stockQuantity(10)
+                .category("Electronics")
+                .imageUrl("http://example.com")
+                .build();
+
+        when(productRepository.existsByName("Laptop")).thenReturn(true);
+
+        assertThrows(ProductAlreadyExistsException.class,
+                () -> productService.createProduct(request));
+
+        verify(productRepository, never()).save(any());
     }
 }
