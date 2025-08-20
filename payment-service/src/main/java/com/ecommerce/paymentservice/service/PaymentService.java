@@ -3,6 +3,7 @@ package com.ecommerce.paymentservice.service;
 import com.ecommerce.paymentservice.dto.OrderDetailsDto;
 import com.ecommerce.paymentservice.dto.PaymentRequestDto;
 import com.ecommerce.paymentservice.dto.PaymentResponseDto;
+import com.ecommerce.paymentservice.exception.OrderNotFoundException;
 import com.ecommerce.paymentservice.exception.OrderServiceCommunicationException;
 import com.ecommerce.paymentservice.exception.PaymentAlreadyExistsException;
 import com.ecommerce.paymentservice.exception.PaymentNotFoundException;
@@ -148,7 +149,7 @@ public class PaymentService {
                                     .flatMap(errorBody -> {
                                         log.error("Order Service returned client error for order ID {}: {}. Status: {}", orderId, errorBody, clientResponse.statusCode());
                                         if (clientResponse.statusCode() == HttpStatus.NOT_FOUND) {
-                                            return Mono.<Throwable>error(new PaymentNotFoundException("Order not found with ID: " + orderId));
+                                            return Mono.<Throwable>error(new OrderNotFoundException("Order not found with ID: " + orderId));
                                         }
                                         return Mono.<Throwable>error(new OrderServiceCommunicationException("Error from Order Service: " + clientResponse.statusCode() + " - " + errorBody));
                                     })
